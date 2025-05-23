@@ -48,7 +48,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["chrome-extension://aabbfbjaekfkjgboflchacgohkihnjjg"],
+    allow_origins=["chrome-extension://hpllhjddcjiiemjndbapegfijfgdpjlh",
+                   "chrome-extension://jplhbppcnijfhohdcpoolfadkaaglgpb",
+                   "moz-extension://5ac6b05f-45a5-4903-91cc-4e7cbc9c3208"],
     allow_methods=["POST"],
     allow_headers=["Content-Type"],
 )
