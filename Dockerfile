@@ -7,9 +7,10 @@ WORKDIR /app
 # Copia los archivos necesarios al contenedor
 COPY requirements.txt .
 COPY main.py .
-COPY deteccion.py .
-COPY traduccion.py .
-COPY narracion.py .
+COPY detection.py .
+COPY translation.py .
+COPY narration.py .
+COPY model_manager.py .
 
 # Instala las dependencias
 RUN pip install --no-cache-dir -r requirements.txt

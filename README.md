@@ -27,7 +27,7 @@ This project provides a FastAPI-based server for processing text input, detectin
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/andrespm2000/MalagasyTTS-Server/tree/main
    cd MalagasyTTSserver
 
 2. Install the required dependencies:

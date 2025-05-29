@@ -5,12 +5,13 @@ This module defines the FastAPI application, its endpoints, and the logic for pr
 text input, detecting its language, translating it into Malagasy, and generating audio output.
 """
 
-from fastapi import FastAPI, Form, Request, HTTPException
+from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, HTMLResponse
-from deteccion import classifModel, classifTokenizer, detectar_idioma
-from traduccion import transModel, traducir_texto
-from narracion import ttsModel, ttsTokenizer, generar_audio
+from detection import detect_language
+from translation import translate_text
+from narration import generate_audio
+from model_manager import ModelManager
 import io
 
 #Language code dictionary for translation
@@ -37,20 +38,11 @@ LANGMAP = {
   "zh": "zho_Hans"
 }
 
-# Model and tokenizer loading
-print("Downloading models...")
-_ = classifModel, classifTokenizer  # Language detection
-_ = transModel  # Translation
-_ = ttsModel, ttsTokenizer  # TTS
-print("Models downloaded successfully.")
-
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["chrome-extension://hpllhjddcjiiemjndbapegfijfgdpjlh",
-                   "chrome-extension://jplhbppcnijfhohdcpoolfadkaaglgpb",
-                   "moz-extension://5ac6b05f-45a5-4903-91cc-4e7cbc9c3208"],
+    allow_origins=["*"],
     allow_methods=["POST"],
     allow_headers=["Content-Type"],
 )
@@ -78,12 +70,15 @@ async def root():
 
 #POST request for data processing
 @app.post("/models")
-async def root(input:str = Form(...)):
+async def root(input: str = Form(...), detModel: str = Form(...), transModel: str = Form(...), narrModel: str = Form(...)):
     """
     POST endpoint for processing text input.
 
     Args:
         input (str): The text to process, provided as form-data.
+        detModel (str): The name of the language detection model.
+        transModel (str): The name of the translation model.
+        narrModel (str): The name of the TTS model.
 
     Returns:
         StreamingResponse: A multipart/mixed response containing:
@@ -101,13 +96,16 @@ async def root(input:str = Form(...)):
         raise HTTPException(status_code=400, detail="Text is empty")
     
     #Language detection
-    detectedLang, langTranslationCode = detectar_idioma(input, LANGMAP)
+    classifModel, classifTokenizer = ModelManager.get_model(detModel, "classification")
+    detectedLang, langTranslationCode = detect_language(input, LANGMAP, classifModel, classifTokenizer)
     
     #Translation
-    translatedText = traducir_texto(input, langTranslationCode)
+    transModelInstance, transTokenizer = ModelManager.get_model(transModel, "translation", lang_code=langTranslationCode)
+    translatedText = translate_text(input, transModelInstance, transTokenizer)
 
     #TTS generation
-    audioBuffer = generar_audio(translatedText)
+    ttsModelInstance, ttsTokenizer = ModelManager.get_model(narrModel, "tts")
+    audioBuffer = generate_audio(translatedText, ttsModelInstance, ttsTokenizer)
     
     #Response return
     boundary = "boundary123"
