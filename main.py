@@ -11,7 +11,9 @@ from fastapi.responses import StreamingResponse, HTMLResponse
 from detection import detect_language
 from translation import translate_text
 from narration import generate_audio
-from model_manager import ModelManager
+from fastapi.exceptions import RequestValidationError
+from fastapi.requests import Request
+import logging
 import io
 
 #Language code dictionary for translation
@@ -42,7 +44,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex="^moz-extension://.*$|^chrome-extension://.*$",
     allow_methods=["POST"],
     allow_headers=["Content-Type"],
 )
@@ -96,16 +98,13 @@ async def root(input: str = Form(...), detModel: str = Form(...), transModel: st
         raise HTTPException(status_code=400, detail="Text is empty")
     
     #Language detection
-    classifModel, classifTokenizer = ModelManager.get_model(detModel, "classification")
-    detectedLang, langTranslationCode = detect_language(input, LANGMAP, classifModel, classifTokenizer)
+    detectedLang, langTranslationCode = detect_language(input, LANGMAP, detModel)
     
     #Translation
-    transModelInstance, transTokenizer = ModelManager.get_model(transModel, "translation", lang_code=langTranslationCode)
-    translatedText = translate_text(input, transModelInstance, transTokenizer)
+    translatedText = translate_text(input, detectedLang, transModel)
 
     #TTS generation
-    ttsModelInstance, ttsTokenizer = ModelManager.get_model(narrModel, "tts")
-    audioBuffer = generate_audio(translatedText, ttsModelInstance, ttsTokenizer)
+    audioBuffer = generate_audio(translatedText, narrModel)
     
     #Response return
     boundary = "boundary123"
@@ -119,3 +118,16 @@ async def root(input: str = Form(...), detModel: str = Form(...), transModel: st
     ).encode("utf-8") + audioBuffer.read() + f"\r\n--{boundary}--\r\n".encode("utf-8")
 
     return StreamingResponse(io.BytesIO(response_content), media_type=f"multipart/mixed; boundary={boundary}")
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Imprime el contenido de la petición y el error
+    try:
+        body = await request.body()
+        logging.error(f"422 Error: {exc}\nRequest body: {body.decode('utf-8')}")
+    except Exception as e:
+        logging.error(f"422 Error: {exc}\n(No se pudo leer el body: {e})")
+    return HTMLResponse(
+        content=f"<h2>Error 422: Unprocessable Entity</h2><pre>{exc}</pre>",
+        status_code=422
+    )
