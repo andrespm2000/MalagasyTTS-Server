@@ -8,9 +8,9 @@ text input, detecting its language, translating it into Malagasy, and generating
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, HTMLResponse
-from detection import detect_language
-from translation import translate_text
-from narration import generate_audio
+from detection import detect_language, getModel as get_detection_model
+from translation import translate_text, getModel as get_translation_model
+from narration import generate_audio, getModel as get_narration_model
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 import logging
@@ -97,14 +97,19 @@ async def root(input: str = Form(...), detModel: str = Form(...), transModel: st
     if input.__len__() == 0:
         raise HTTPException(status_code=400, detail="Text is empty")
     
+    #Retrieve models
+    get_detection_model(detModel)
+    get_translation_model(transModel)
+    get_narration_model(narrModel)
+
     #Language detection
-    detectedLang, langTranslationCode = detect_language(input, LANGMAP, detModel)
+    detectedLang, langTranslationCode = detect_language(input, LANGMAP)
     
     #Translation
-    translatedText = translate_text(input, detectedLang, transModel)
+    translatedText = translate_text(input, detectedLang)
 
     #TTS generation
-    audioBuffer = generate_audio(translatedText, narrModel)
+    audioBuffer = generate_audio(translatedText)
     
     #Response return
     boundary = "boundary123"

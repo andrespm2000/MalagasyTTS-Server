@@ -2,8 +2,27 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 
 _instances = {}
+currentTokenizer = None
+currentModel = None
 
-def translate_text(text, lang_code, model_name):
+def getModel(model_name):
+    """
+    Retrieves the pre-trained model and tokenizer for translation.
+
+    Args:
+        model_name (str): The name of the pre-trained model to load.
+
+    """
+    if model_name in _instances:
+        currentTokenizer, currentModel = _instances[model_name]
+        print("Classification model loaded from cache")
+    else:
+        currentTokenizer = AutoTokenizer.from_pretrained(model_name)
+        currentModel = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        print("Classification model downloaded")
+        _instances[model_name] = (currentTokenizer, currentModel)
+
+def translate_text(text, lang_code):
     """
     Translates a given text into Malagasy using a pre-trained translation model.
 
@@ -14,20 +33,12 @@ def translate_text(text, lang_code, model_name):
     Returns:
         str: The translated text in the target language.
     """
-    if model_name in _instances:
-        transTokenizer, transModel = _instances[model_name]
-        print("Translation model loaded from cache")
-    else:
-        transTokenizer = AutoTokenizer.from_pretrained(model_name, src_lang=lang_code)
-        transModel = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        print("Translation model downloaded")
 
-    transInputs = transTokenizer(text, return_tensors="pt")
+    transInputs = currentTokenizer(text, return_tensors="pt")
     with torch.no_grad():
-        translatedTokens = transModel.generate(
+        translatedTokens = currentModel.generate(
             **transInputs,
-            forced_bos_token_id=transTokenizer.convert_tokens_to_ids("plt_Latn"),
+            forced_bos_token_id=currentTokenizer.convert_tokens_to_ids("plt_Latn"),
             max_length=512
         )
-    _instances[model_name] = (transTokenizer, transModel)
-    return transTokenizer.batch_decode(translatedTokens, skip_special_tokens=True)[0]
+    return currentTokenizer.batch_decode(translatedTokens, skip_special_tokens=True)[0]

@@ -4,8 +4,27 @@ import io
 import soundfile as sf
 
 _instances = {}
+currentTokenizer = None
+currentModel = None
 
-def generate_audio(text, model_name):
+def getModel(model_name):
+    """
+    Retrieves the pre-trained model and tokenizer for TTS.
+
+    Args:
+        model_name (str): The name of the pre-trained model to load.
+
+    """
+    if model_name in _instances:
+        currentTokenizer, currentModel = _instances[model_name]
+        print("Classification model loaded from cache")
+    else:
+        currentTokenizer = VitsTokenizer.from_pretrained(model_name)
+        currentModel = VitsModel.from_pretrained(model_name)
+        print("Classification model downloaded")
+        _instances[model_name] = (currentTokenizer, currentModel)
+
+def generate_audio(text):
     """
     Generates an audio waveform from the given text using a pre-trained TTS model.
 
@@ -15,26 +34,16 @@ def generate_audio(text, model_name):
     Returns:
         io.BytesIO: A buffer containing the generated audio in WAV format.
     """
-    
-    if model_name in _instances:
-        ttsTokenizer, ttsModel = _instances[model_name]
-        print("Narration model loaded from cache")
-    else:
-        ttsTokenizer = VitsTokenizer.from_pretrained(model_name)
-        ttsModel = VitsModel.from_pretrained(model_name)
-        print("Narration model downloaded")
 
     set_seed(555)
-    ttsModel.to("cpu").eval()
-    ttsInputs = ttsTokenizer(text, return_tensors="pt")
+    currentModel.to("cpu").eval()
+    ttsInputs = currentTokenizer(text, return_tensors="pt")
     with torch.no_grad():
-        ttsOutput = ttsModel(**ttsInputs.to("cpu")).waveform[0]
+        ttsOutput = currentModel(**ttsInputs.to("cpu")).waveform[0]
     waveformNp = ttsOutput.cpu().float().numpy()
-
-    _instances[model_name] = (ttsTokenizer, ttsModel)
 
     #Saving audio to buffer
     audioBuffer = io.BytesIO()
-    sf.write(audioBuffer, waveformNp, samplerate=ttsModel.config.sampling_rate, format="WAV")
+    sf.write(audioBuffer, waveformNp, samplerate=currentModel.config.sampling_rate, format="WAV")
     audioBuffer.seek(0)
     return audioBuffer
