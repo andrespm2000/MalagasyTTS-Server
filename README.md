@@ -113,17 +113,17 @@ Andrés Perdomo Martínez - [![LinkedIn][linkedin-shield]][linkedin-url] - andre
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-[contributors-shield]: https://img.shields.io/github/contributors/andrespm2000/MalagasyTTS-Extension.svg?style=for-the-badge
-[contributors-url]: https://github.com/andrespm2000/MalagasyTTS-Extension/graphs/contributors
+[contributors-shield]: https://img.shields.io/github/contributors/andrespm2000/MalagasyTTS-Server.svg?style=for-the-badge
+[contributors-url]: https://github.com/andrespm2000/MalagasyTTS-Server/graphs/contributors
 
-[forks-shield]: https://img.shields.io/github/forks/andrespm2000/MalagasyTTS-Extension.svg?style=for-the-badge
-[forks-url]: https://github.com/andrespm2000/MalagasyTTS-Extension/network/members
+[forks-shield]: https://img.shields.io/github/forks/andrespm2000/MalagasyTTS-Server.svg?style=for-the-badge
+[forks-url]: https://github.com/andrespm2000/MalagasyTTS-Server/network/members
 
-[stars-shield]: https://img.shields.io/github/stars/andrespm2000/MalagasyTTS-Extension.svg?style=for-the-badge
-[stars-url]: https://github.com/andrespm2000/MalagasyTTS-Extension/stargazers
+[stars-shield]: https://img.shields.io/github/stars/andrespm2000/MalagasyTTS-Server.svg?style=for-the-badge
+[stars-url]: https://github.com/andrespm2000/MalagasyTTS-Server/stargazers
 
-[issues-shield]: https://img.shields.io/github/issues/andrespm2000/MalagasyTTS-Extension.svg?style=for-the-badge
-[issues-url]: https://github.com/andrespm2000/MalagasyTTS-Extension/issues
+[issues-shield]: https://img.shields.io/github/issues/andrespm2000/MalagasyTTS-Server.svg?style=for-the-badge
+[issues-url]: https://github.com/andrespm2000/MalagasyTTS-Server/issues
 
 [linkedin-shield]: https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff
 [linkedin-url]: https://www.linkedin.com/in/andres-perdomo-12bb3b1ba/
