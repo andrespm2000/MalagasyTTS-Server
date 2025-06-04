@@ -60,14 +60,7 @@ async def root():
     """
 
     return """
-    <html>
-        <head>
-            <title>Wrong path</title>
-        </head>
-        <body>
-            <h1>Wrong path ;)</h1>
-        </body>
-    </html>
+    <h2>MalagasyTTS Server is running.</h2>
     """
 
 #POST request for data processing
