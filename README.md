@@ -92,6 +92,11 @@ Make sure to have [Docker installed in your system](https://docs.docker.com/engi
     ```bash
     uvicorn main:app --reload
 
+5. In the case of having Nvidia GPUs available, build the image with Dockerfile-gpu:
+    ```bash
+    docker build -t <image name>:latest -f Dockerfile-gpu .
+    docker run --gpus all -p 8000:8000 malagasytts --name <container name> <image name>:latest
+
 ## API Endpoints
 - **GET /**
     - Description: A simple endpoint to test if the server is running.

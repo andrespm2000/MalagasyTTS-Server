@@ -65,7 +65,7 @@ async def root():
 
 #POST request for data processing
 @app.post("/models")
-async def root(input: str = Form(...), detModel: str = Form(...), transModel: str = Form(...), narrModel: str = Form(...)):
+async def root(input: str = Form(""), detModel: str = Form(...), transModel: str = Form(...), narrModel: str = Form(...)):
     """
     POST endpoint for processing text input.
 

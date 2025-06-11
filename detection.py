@@ -13,6 +13,7 @@ def getModel(model_name):
         model_name (str): The name of the pre-trained model to load.
 
     """
+    global currentTokenizer, currentModel 
     if model_name in _instances:
         currentTokenizer, currentModel = _instances[model_name]
         print("Classification model loaded from cache")
