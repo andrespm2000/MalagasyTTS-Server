@@ -117,6 +117,56 @@ async def root(input: str = Form(""), detModel: str = Form(...), transModel: str
 
     return StreamingResponse(io.BytesIO(response_content), media_type=f"multipart/mixed; boundary={boundary}")
 
+#POST request for retrying translation
+@app.post("/modelsretry")
+async def root(input: str = Form(""), langCode: str = Form(...), transModel: str = Form(...), narrModel: str = Form(...)):
+    """
+    POST endpoint for retrying the translation process.
+
+    Args:
+        input (str): The text to process, provided as form-data.
+        langCode (str): The specified language code.
+        transModel (str): The name of the translation model.
+        narrModel (str): The name of the TTS model.
+
+    Returns:
+        StreamingResponse: A multipart/mixed response containing:
+            - Translation in JSON format.
+            - The generated audio file in WAV format.
+
+    Raises:
+        HTTPException: If the input text is empty.
+    """
+
+    print("Received input: ", input)
+
+    #Empty text validation
+    if input.__len__() == 0:
+        raise HTTPException(status_code=400, detail="Text is empty")
+    
+    #Retrieve models
+    get_translation_model(transModel)
+    get_narration_model(narrModel)
+    
+    #Translation
+    translatedText = translate_text(input, langCode)
+
+    #TTS generation
+    audioBuffer = generate_audio(translatedText)
+    
+    #Response return
+    boundary = "boundary123"
+    response_content = (
+        f"--{boundary}\r\n"
+        "Content-Type: application/json\r\n\r\n"
+        f'{{"translated_text": "{translatedText}"}}\r\n'
+        f"--{boundary}\r\n"
+        "Content-Type: audio/wav\r\n"
+        "Content-Disposition: attachment; filename=output.wav\r\n\r\n"
+    ).encode("utf-8") + audioBuffer.read() + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+    return StreamingResponse(io.BytesIO(response_content), media_type=f"multipart/mixed; boundary={boundary}")
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     # Imprime el contenido de la petición y el error
