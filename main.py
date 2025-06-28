@@ -8,9 +8,9 @@ text input, detecting its language, translating it into Malagasy, and generating
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, HTMLResponse
-from detection import detect_language, getModel as get_detection_model
-from translation import translate_text, getModel as get_translation_model
-from narration import generate_audio, getModel as get_narration_model
+from detection import Detector
+from translation import Translator
+from narration import Narrator
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 import logging
@@ -39,6 +39,10 @@ LANGMAP = {
   "vi": "vie_Latn",
   "zh": "zho_Hans"
 }
+
+detector = Detector()
+translator = Translator()
+narrator = Narrator()
 
 app = FastAPI()
 
@@ -91,18 +95,18 @@ async def root(input: str = Form(""), detModel: str = Form(...), transModel: str
         raise HTTPException(status_code=400, detail="Text is empty")
     
     #Retrieve models
-    get_detection_model(detModel)
-    get_translation_model(transModel)
-    get_narration_model(narrModel)
+    detector.getModel(detModel)
+    translator.getModel(transModel)
+    narrator.getModel(narrModel)
 
     #Language detection
-    detectedLang, langTranslationCode = detect_language(input, LANGMAP)
+    detectedLang, langTranslationCode = detector.detect_language(input, LANGMAP)
     
     #Translation
-    translatedText = translate_text(input, detectedLang)
+    translatedText = translator.translate_text(input, detectedLang)
 
     #TTS generation
-    audioBuffer = generate_audio(translatedText)
+    audioBuffer = narrator.generate_audio(translatedText)
     
     #Response return
     boundary = "boundary123"
@@ -145,14 +149,14 @@ async def root(input: str = Form(""), langCode: str = Form(...), transModel: str
         raise HTTPException(status_code=400, detail="Text is empty")
     
     #Retrieve models
-    get_translation_model(transModel)
-    get_narration_model(narrModel)
+    translator.getModel(transModel)
+    narrator.getModel(narrModel)
     
     #Translation
-    translatedText = translate_text(input, langCode)
+    translatedText = translator.translate_text(input, langCode)
 
     #TTS generation
-    audioBuffer = generate_audio(translatedText)
+    audioBuffer = narrator.generate_audio(translatedText)
     
     #Response return
     boundary = "boundary123"
